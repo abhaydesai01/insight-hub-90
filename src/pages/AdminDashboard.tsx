@@ -146,6 +146,30 @@ const AdminDashboard = () => {
           <Button variant="outline" size="sm" onClick={copyCode}>
             <Copy className="h-4 w-4" /> Copy
           </Button>
+          {!session.isActive && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                restartSession(code);
+                toast.success("Session restarted");
+              }}
+            >
+              <RefreshCw className="h-4 w-4" /> Restart
+            </Button>
+          )}
+          {session.isActive && session.polls.length > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                resetAllPolls(code);
+                toast.success("All polls reset");
+              }}
+            >
+              <RotateCcw className="h-4 w-4" /> Reset All
+            </Button>
+          )}
           <Button
             variant="destructive"
             size="sm"

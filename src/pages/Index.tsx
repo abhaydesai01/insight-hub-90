@@ -10,17 +10,22 @@ import Header from "@/components/Header";
 const Index = () => {
   const [joinCode, setJoinCode] = useState("");
   const navigate = useNavigate();
-  const { joinSession, setIsAdmin, adminLoggedIn } = usePollingStore();
+  const { setIsAdmin, adminLoggedIn } = usePollingStore();
 
-  const handleJoin = () => {
-    if (!joinCode.trim()) {
+  const handleJoin = async () => {
+    const normalizedCode = joinCode.trim().toUpperCase();
+
+    if (!normalizedCode) {
       toast.error("Please enter a session code");
       return;
     }
-    const success = joinSession(joinCode.trim());
+
+    await usePollingStore.persist.rehydrate();
+    const success = usePollingStore.getState().joinSession(normalizedCode);
+
     if (success) {
       setIsAdmin(false);
-      navigate(`/session/${joinCode.trim().toUpperCase()}`);
+      navigate(`/session/${normalizedCode}`);
     } else {
       toast.error("Invalid or inactive session code");
     }

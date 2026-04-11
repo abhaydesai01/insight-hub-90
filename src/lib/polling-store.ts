@@ -113,12 +113,25 @@ export const usePollingStore = create<PollingStore>((set, get) => ({
 
   createSession: (title, description) => {
     const code = generateCode();
+    // Auto-create a single Yes/No poll with the session
+    const poll: Poll = {
+      id: generateId(),
+      question: '',
+      type: 'binary',
+      options: [
+        { id: 'yes', label: 'Yes' },
+        { id: 'no', label: 'No' },
+      ],
+      isActive: false,
+      responses: {},
+      createdAt: Date.now(),
+    };
     const session: Session = {
       id: generateId(),
       code,
       title,
       description,
-      polls: [],
+      polls: [poll],
       isActive: true,
       createdAt: Date.now(),
       participantCount: 0,

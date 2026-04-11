@@ -1,8 +1,16 @@
-import { Vote } from "lucide-react";
+import { Vote, LogIn, LogOut, LayoutDashboard } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { usePollingStore } from "@/lib/polling-store";
 
 const Header = () => {
   const navigate = useNavigate();
+  const { adminLoggedIn, adminLogout, adminProfile } = usePollingStore();
+
+  const handleLogout = () => {
+    adminLogout();
+    navigate("/");
+  };
 
   return (
     <header className="border-b bg-card card-shadow">
@@ -16,6 +24,37 @@ const Header = () => {
           </div>
           <span>PolicyPoll</span>
         </button>
+
+        <div className="flex items-center gap-2">
+          {adminLoggedIn ? (
+            <>
+              <span className="hidden text-sm text-muted-foreground sm:inline">
+                {adminProfile?.name}
+              </span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate("/admin/portal")}
+              >
+                <LayoutDashboard className="h-4 w-4" />
+                <span className="hidden sm:inline">Portal</span>
+              </Button>
+              <Button variant="ghost" size="sm" onClick={handleLogout}>
+                <LogOut className="h-4 w-4" />
+                <span className="hidden sm:inline">Logout</span>
+              </Button>
+            </>
+          ) : (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate("/admin/login")}
+            >
+              <LogIn className="h-4 w-4" />
+              Admin Login
+            </Button>
+          )}
+        </div>
       </div>
     </header>
   );

@@ -317,6 +317,18 @@ const AdminDashboard = () => {
                       <Square className="h-3.5 w-3.5" /> Close
                     </Button>
                   )}
+                  {!poll.isActive && Object.keys(poll.responses).length > 0 && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        resetPoll(code, poll.id);
+                        toast.success("Poll responses reset");
+                      }}
+                    >
+                      <RotateCcw className="h-3.5 w-3.5" /> Reset
+                    </Button>
+                  )}
                 </div>
               </div>
               <PollResults poll={poll} />

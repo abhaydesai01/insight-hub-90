@@ -10,7 +10,7 @@ import Header from "@/components/Header";
 const Index = () => {
   const [joinCode, setJoinCode] = useState("");
   const navigate = useNavigate();
-  const { joinSession, setIsAdmin } = usePollingStore();
+  const { joinSession, setIsAdmin, adminLoggedIn } = usePollingStore();
 
   const handleJoin = () => {
     if (!joinCode.trim()) {

@@ -62,6 +62,7 @@ interface PollingStore {
   // Participant actions
   joinSession: (code: string) => boolean;
   submitResponse: (sessionCode: string, pollId: string, response: string) => void;
+  changeResponse: (sessionCode: string, pollId: string, response: string) => void;
 
   // Navigation
   setCurrentSession: (code: string | null) => void;
@@ -291,6 +292,30 @@ export const usePollingStore = create<PollingStore>()(persist((set, get) => ({
     set((s) => {
       const session = s.sessions[sessionCode];
       if (!session) return s;
+      return {
+        sessions: {
+          ...s.sessions,
+          [sessionCode]: {
+            ...session,
+            polls: session.polls.map((p) =>
+              p.id === pollId
+                ? { ...p, responses: { ...p.responses, [pid]: response } }
+                : p
+            ),
+          },
+        },
+      };
+    });
+  },
+
+  changeResponse: (sessionCode, pollId, response) => {
+    const pid = get().participantId;
+    if (!pid) return;
+    set((s) => {
+      const session = s.sessions[sessionCode];
+      if (!session) return s;
+      const poll = session.polls.find((p) => p.id === pollId);
+      if (!poll || !poll.isActive) return s;
       return {
         sessions: {
           ...s.sessions,

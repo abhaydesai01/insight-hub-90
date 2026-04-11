@@ -4,12 +4,12 @@ import { Button } from "@/components/ui/button";
 import { usePollingStore } from "@/lib/polling-store";
 import Header from "@/components/Header";
 import { toast } from "sonner";
-import { CheckCircle2, Clock } from "lucide-react";
+import { CheckCircle2, Clock, RefreshCw } from "lucide-react";
 
 const ParticipantSession = () => {
   const { code } = useParams<{ code: string }>();
   const navigate = useNavigate();
-  const { sessions, participantId, submitResponse } = usePollingStore();
+  const { sessions, participantId, submitResponse, changeResponse } = usePollingStore();
 
   const session = code ? sessions[code] : null;
 
@@ -22,6 +22,14 @@ const ParticipantSession = () => {
     };
     window.addEventListener('storage', onStorage);
     return () => window.removeEventListener('storage', onStorage);
+  }, []);
+
+  // Also poll for changes every 2 seconds (same-tab fallback)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      usePollingStore.persist.rehydrate();
+    }, 2000);
+    return () => clearInterval(interval);
   }, []);
 
   if (!session || !code) {
@@ -39,14 +47,22 @@ const ParticipantSession = () => {
   }
 
   const activePoll = session.polls.find((p) => p.isActive);
-  const hasResponded = activePoll && participantId
-    ? activePoll.responses[participantId] !== undefined
-    : false;
+  const currentResponse = activePoll && participantId
+    ? activePoll.responses[participantId]
+    : undefined;
+  const hasResponded = currentResponse !== undefined;
 
   const handleVote = (optionId: string) => {
-    if (!activePoll || hasResponded) return;
-    submitResponse(code, activePoll.id, optionId);
-    toast.success("Response submitted!");
+    if (!activePoll || !participantId) return;
+
+    if (hasResponded) {
+      // Change mind
+      changeResponse(code, activePoll.id, optionId);
+      toast.success("Vote updated!");
+    } else {
+      submitResponse(code, activePoll.id, optionId);
+      toast.success("Vote submitted!");
+    }
   };
 
   if (!session.isActive) {
@@ -88,12 +104,25 @@ const ParticipantSession = () => {
         )}
 
         {activePoll && hasResponded && (
-          <div className="rounded-xl border bg-card p-8 text-center card-shadow animate-slide-up">
-            <CheckCircle2 className="mx-auto mb-3 h-12 w-12 text-success" />
-            <h2 className="font-semibold">Response Submitted</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Waiting for the next question...
-            </p>
+          <div className="space-y-4 animate-slide-up">
+            <div className="rounded-xl border bg-card p-8 text-center card-shadow">
+              <CheckCircle2 className="mx-auto mb-3 h-12 w-12 text-success" />
+              <h2 className="text-xl font-semibold">Thank you!</h2>
+              <p className="mt-1 text-muted-foreground">
+                Your vote: <span className="font-bold text-foreground">{currentResponse === "yes" ? "✅ Yes" : "❌ No"}</span>
+              </p>
+              <p className="mt-3 text-sm text-muted-foreground">
+                Waiting for the next question...
+              </p>
+            </div>
+
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => handleVote(currentResponse === "yes" ? "no" : "yes")}
+            >
+              <RefreshCw className="h-4 w-4" /> Change my mind — vote {currentResponse === "yes" ? "No" : "Yes"}
+            </Button>
           </div>
         )}
 

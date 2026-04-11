@@ -87,12 +87,13 @@ const AdminDashboard = () => {
           </div>
         </div>
 
-        {/* Session code */}
-        <div className="mb-6 flex flex-wrap items-center gap-3 rounded-xl border bg-card p-4 card-shadow">
-          <div className="flex-1">
-            <p className="text-xs text-muted-foreground">Session Code</p>
-            <p className="font-mono text-2xl font-bold tracking-widest">{code}</p>
-          </div>
+        <div className="mb-6 grid gap-4 sm:grid-cols-[1fr_auto]">
+          {/* Session code */}
+          <div className="flex flex-wrap items-center gap-3 rounded-xl border bg-card p-4 card-shadow">
+            <div className="flex-1">
+              <p className="text-xs text-muted-foreground">Session Code</p>
+              <p className="font-mono text-2xl font-bold tracking-widest">{code}</p>
+            </div>
           <Button variant="outline" size="sm" onClick={copyCode}>
             <Copy className="h-4 w-4" /> Copy
           </Button>

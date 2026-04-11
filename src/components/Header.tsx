@@ -2,6 +2,7 @@ import { Vote, LogIn, LogOut, LayoutDashboard } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { usePollingStore } from "@/lib/polling-store";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 const Header = () => {
   const navigate = useNavigate();
@@ -26,6 +27,7 @@ const Header = () => {
         </button>
 
         <div className="flex items-center gap-2">
+          <LanguageSwitcher />
           {adminLoggedIn ? (
             <>
               <span className="hidden text-sm text-muted-foreground sm:inline">

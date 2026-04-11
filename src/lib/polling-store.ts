@@ -62,6 +62,7 @@ interface PollingStore {
   // Participant actions
   joinSession: (code: string) => boolean;
   submitResponse: (sessionCode: string, pollId: string, response: string) => void;
+  changeResponse: (sessionCode: string, pollId: string, response: string) => void;
 
   // Navigation
   setCurrentSession: (code: string | null) => void;

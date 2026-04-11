@@ -4,6 +4,7 @@ import { usePollingStore } from "@/lib/polling-store";
 import Header from "@/components/Header";
 import PollResults from "@/components/PollResults";
 import { toast } from "sonner";
+import { QRCodeSVG } from "qrcode.react";
 import {
   Copy,
   Play,
@@ -86,41 +87,53 @@ const AdminDashboard = () => {
           </div>
         </div>
 
-        {/* Session code */}
-        <div className="mb-6 flex flex-wrap items-center gap-3 rounded-xl border bg-card p-4 card-shadow">
-          <div className="flex-1">
-            <p className="text-xs text-muted-foreground">Session Code</p>
-            <p className="font-mono text-2xl font-bold tracking-widest">{code}</p>
-          </div>
-          <Button variant="outline" size="sm" onClick={copyCode}>
-            <Copy className="h-4 w-4" /> Copy
-          </Button>
-          {!session.isActive && (
+        <div className="mb-6 grid gap-4 sm:grid-cols-[1fr_auto]">
+          {/* Session code */}
+          <div className="flex flex-wrap items-center gap-3 rounded-xl border bg-card p-4 card-shadow">
+            <div className="flex-1">
+              <p className="text-xs text-muted-foreground">Session Code</p>
+              <p className="font-mono text-2xl font-bold tracking-widest">{code}</p>
+            </div>
+            <Button variant="outline" size="sm" onClick={copyCode}>
+              <Copy className="h-4 w-4" /> Copy
+            </Button>
+            {!session.isActive && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  restartSession(code);
+                  toast.success("Session restarted");
+                }}
+              >
+                <RefreshCw className="h-4 w-4" /> Restart
+              </Button>
+            )}
+            <Button variant="outline" size="sm" onClick={handleExport}>
+              <Download className="h-4 w-4" /> Export
+            </Button>
             <Button
-              variant="outline"
+              variant="destructive"
               size="sm"
               onClick={() => {
-                restartSession(code);
-                toast.success("Session restarted");
+                endSession(code);
+                toast.success("Session ended");
               }}
+              disabled={!session.isActive}
             >
-              <RefreshCw className="h-4 w-4" /> Restart
+              End Session
             </Button>
-          )}
-          <Button variant="outline" size="sm" onClick={handleExport}>
-            <Download className="h-4 w-4" /> Export
-          </Button>
-          <Button
-            variant="destructive"
-            size="sm"
-            onClick={() => {
-              endSession(code);
-              toast.success("Session ended");
-            }}
-            disabled={!session.isActive}
-          >
-            End Session
-          </Button>
+          </div>
+
+          {/* QR Code */}
+          <div className="flex flex-col items-center justify-center rounded-xl border bg-card p-4 card-shadow">
+            <QRCodeSVG
+              value={`${window.location.origin}/session/${code}`}
+              size={140}
+              level="M"
+            />
+            <p className="mt-2 text-xs text-muted-foreground">Scan to join</p>
+          </div>
         </div>
 
         {/* Poll controls */}

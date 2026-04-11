@@ -4,6 +4,7 @@ import { usePollingStore } from "@/lib/polling-store";
 import Header from "@/components/Header";
 import PollResults from "@/components/PollResults";
 import { toast } from "sonner";
+import { QRCodeSVG } from "qrcode.react";
 import {
   Copy,
   Play,

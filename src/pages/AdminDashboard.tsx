@@ -94,35 +94,46 @@ const AdminDashboard = () => {
               <p className="text-xs text-muted-foreground">Session Code</p>
               <p className="font-mono text-2xl font-bold tracking-widest">{code}</p>
             </div>
-          <Button variant="outline" size="sm" onClick={copyCode}>
-            <Copy className="h-4 w-4" /> Copy
-          </Button>
-          {!session.isActive && (
+            <Button variant="outline" size="sm" onClick={copyCode}>
+              <Copy className="h-4 w-4" /> Copy
+            </Button>
+            {!session.isActive && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  restartSession(code);
+                  toast.success("Session restarted");
+                }}
+              >
+                <RefreshCw className="h-4 w-4" /> Restart
+              </Button>
+            )}
+            <Button variant="outline" size="sm" onClick={handleExport}>
+              <Download className="h-4 w-4" /> Export
+            </Button>
             <Button
-              variant="outline"
+              variant="destructive"
               size="sm"
               onClick={() => {
-                restartSession(code);
-                toast.success("Session restarted");
+                endSession(code);
+                toast.success("Session ended");
               }}
+              disabled={!session.isActive}
             >
-              <RefreshCw className="h-4 w-4" /> Restart
+              End Session
             </Button>
-          )}
-          <Button variant="outline" size="sm" onClick={handleExport}>
-            <Download className="h-4 w-4" /> Export
-          </Button>
-          <Button
-            variant="destructive"
-            size="sm"
-            onClick={() => {
-              endSession(code);
-              toast.success("Session ended");
-            }}
-            disabled={!session.isActive}
-          >
-            End Session
-          </Button>
+          </div>
+
+          {/* QR Code */}
+          <div className="flex flex-col items-center justify-center rounded-xl border bg-card p-4 card-shadow">
+            <QRCodeSVG
+              value={`${window.location.origin}/session/${code}`}
+              size={140}
+              level="M"
+            />
+            <p className="mt-2 text-xs text-muted-foreground">Scan to join</p>
+          </div>
         </div>
 
         {/* Poll controls */}

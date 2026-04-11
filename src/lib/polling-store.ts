@@ -1,5 +1,6 @@
-// In-memory polling store (prototype — replace with Lovable Cloud for production)
+// In-memory polling store with localStorage persistence (prototype)
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
 export type QuestionType = 'binary' | 'mcq' | 'text';
 
@@ -91,7 +92,7 @@ const DEMO_ADMIN_PROFILE: AdminProfile = {
   designation: 'Senior Administrator',
 };
 
-export const usePollingStore = create<PollingStore>((set, get) => ({
+export const usePollingStore = create<PollingStore>()(persist((set, get) => ({
   sessions: {},
   currentSessionCode: null,
   participantId: null,
@@ -321,4 +322,6 @@ export const usePollingStore = create<PollingStore>((set, get) => ({
   },
   getActiveSessions: () =>
     Object.values(get().sessions).filter((s) => s.isActive).length,
+}), {
+  name: 'policypoll-store',
 }));

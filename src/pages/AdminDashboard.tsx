@@ -28,7 +28,7 @@ import {
 const AdminDashboard = () => {
   const { code } = useParams<{ code: string }>();
   const navigate = useNavigate();
-  const { sessions, addPoll, launchPoll, closePoll, endSession } =
+  const { sessions, addPoll, launchPoll, closePoll, endSession, resetPoll, resetAllPolls, restartSession, adminLoggedIn } =
     usePollingStore();
 
   const session = code ? sessions[code] : null;

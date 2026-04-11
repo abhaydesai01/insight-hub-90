@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { usePollingStore } from "@/lib/polling-store";
@@ -11,6 +12,17 @@ const ParticipantSession = () => {
   const { sessions, participantId, submitResponse } = usePollingStore();
 
   const session = code ? sessions[code] : null;
+
+  // Sync across tabs: when admin changes state, participant tab updates
+  useEffect(() => {
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === 'policypoll-store') {
+        usePollingStore.persist.rehydrate();
+      }
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, []);
 
   if (!session || !code) {
     return (

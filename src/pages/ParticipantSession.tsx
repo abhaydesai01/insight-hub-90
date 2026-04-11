@@ -1,7 +1,5 @@
-import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { usePollingStore } from "@/lib/polling-store";
 import Header from "@/components/Header";
 import { toast } from "sonner";
@@ -11,7 +9,6 @@ const ParticipantSession = () => {
   const { code } = useParams<{ code: string }>();
   const navigate = useNavigate();
   const { sessions, participantId, submitResponse } = usePollingStore();
-  const [textResponse, setTextResponse] = useState("");
 
   const session = code ? sessions[code] : null;
 
@@ -37,13 +34,6 @@ const ParticipantSession = () => {
   const handleVote = (optionId: string) => {
     if (!activePoll || hasResponded) return;
     submitResponse(code, activePoll.id, optionId);
-    toast.success("Response submitted!");
-  };
-
-  const handleTextSubmit = () => {
-    if (!activePoll || hasResponded || !textResponse.trim()) return;
-    submitResponse(code, activePoll.id, textResponse.trim());
-    setTextResponse("");
     toast.success("Response submitted!");
   };
 
@@ -80,7 +70,7 @@ const ParticipantSession = () => {
             <Clock className="mx-auto mb-3 h-10 w-10 text-muted-foreground" />
             <h2 className="font-semibold">Waiting for poll...</h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              The administrator will launch a question shortly.
+              The administrator will ask a question and launch the poll shortly.
             </p>
           </div>
         )}
@@ -97,45 +87,26 @@ const ParticipantSession = () => {
 
         {activePoll && !hasResponded && (
           <div className="space-y-4 animate-slide-up">
-            <div className="rounded-xl border bg-card p-5 card-shadow">
-              <p className="text-xs text-muted-foreground">Current Question</p>
-              <h2 className="mt-1 text-lg font-semibold">{activePoll.question}</h2>
+            <div className="rounded-xl border bg-card p-5 card-shadow text-center">
+              <p className="text-sm text-muted-foreground">Please cast your vote</p>
             </div>
 
-            {activePoll.type !== "text" && (
-              <div className="grid gap-3">
-                {activePoll.options.map((option) => (
-                  <Button
-                    key={option.id}
-                    variant="outline"
-                    className="h-auto min-h-[3.5rem] justify-start px-5 py-4 text-base font-medium transition-all hover:ring-2 hover:ring-primary"
-                    onClick={() => handleVote(option.id)}
-                  >
-                    {option.label}
-                  </Button>
-                ))}
-              </div>
-            )}
-
-            {activePoll.type === "text" && (
-              <div className="space-y-3">
-                <Textarea
-                  placeholder="Type your response..."
-                  value={textResponse}
-                  onChange={(e) => setTextResponse(e.target.value)}
-                  rows={4}
-                />
-                <Button
-                  onClick={handleTextSubmit}
-                  variant="hero"
-                  className="w-full"
-                  size="lg"
-                  disabled={!textResponse.trim()}
-                >
-                  Submit Response
-                </Button>
-              </div>
-            )}
+            <div className="grid grid-cols-2 gap-4">
+              <Button
+                variant="outline"
+                className="h-24 text-xl font-bold transition-all hover:ring-2 hover:ring-success hover:bg-success/10"
+                onClick={() => handleVote("yes")}
+              >
+                ✅ Yes
+              </Button>
+              <Button
+                variant="outline"
+                className="h-24 text-xl font-bold transition-all hover:ring-2 hover:ring-destructive hover:bg-destructive/10"
+                onClick={() => handleVote("no")}
+              >
+                ❌ No
+              </Button>
+            </div>
           </div>
         )}
       </div>

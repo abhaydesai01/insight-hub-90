@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { usePollingStore } from "@/lib/polling-store";
 import Header from "@/components/Header";
+import PollResults from "@/components/PollResults";
 import {
   Plus,
   BarChart3,
@@ -9,8 +10,6 @@ import {
   Activity,
   ArrowRight,
   RotateCcw,
-  MessageSquare,
-  CheckCircle2,
   Clock,
 } from "lucide-react";
 
@@ -45,7 +44,6 @@ const AdminPortal = () => {
     <div className="min-h-screen bg-background">
       <Header />
       <div className="container mx-auto max-w-5xl px-4 py-8 animate-fade-in">
-        {/* Welcome */}
         <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold">Admin Portal</h1>
@@ -61,16 +59,13 @@ const AdminPortal = () => {
         {/* Overall Stats */}
         <div className="mb-8 grid gap-4 sm:grid-cols-3">
           {stats.map((s) => (
-            <div
-              key={s.label}
-              className="rounded-xl border bg-card p-5 card-shadow"
-            >
+            <div key={s.label} className="rounded-xl border bg-card p-5 card-shadow">
               <div className="flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
                   <s.icon className="h-5 w-5 text-primary" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold animate-count-up">{s.value}</p>
+                  <p className="text-2xl font-bold">{s.value}</p>
                   <p className="text-xs text-muted-foreground">{s.label}</p>
                 </div>
               </div>
@@ -78,7 +73,6 @@ const AdminPortal = () => {
           ))}
         </div>
 
-        {/* Sessions list with per-session stats */}
         <h2 className="mb-4 text-lg font-semibold">All Sessions</h2>
 
         {sessionList.length === 0 && (
@@ -89,17 +83,10 @@ const AdminPortal = () => {
 
         <div className="space-y-4">
           {sessionList.map((session) => {
-            const totalPolls = session.polls.length;
-            const totalResponses = session.polls.reduce(
-              (acc, p) => acc + Object.keys(p.responses).length,
-              0
-            );
-            const activePolls = session.polls.filter((p) => p.isActive).length;
-            const closedPolls = session.polls.filter(
-              (p) => !p.isActive && Object.keys(p.responses).length > 0
-            ).length;
-            const avgResponses =
-              totalPolls > 0 ? Math.round(totalResponses / totalPolls) : 0;
+            const poll = session.polls[0];
+            const totalResponses = poll ? Object.keys(poll.responses).length : 0;
+            const yesCount = poll ? Object.values(poll.responses).filter((r) => r === "yes").length : 0;
+            const noCount = poll ? Object.values(poll.responses).filter((r) => r === "no").length : 0;
             const createdDate = new Date(session.createdAt).toLocaleDateString(
               "en-IN",
               { day: "numeric", month: "short", year: "numeric" }
@@ -108,9 +95,8 @@ const AdminPortal = () => {
             return (
               <div
                 key={session.id}
-                className="rounded-xl border bg-card p-5 card-shadow transition-shadow hover:card-shadow-lg"
+                className="rounded-xl border bg-card p-5 card-shadow"
               >
-                {/* Session header row */}
                 <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
                   <div className="flex items-center gap-2">
                     <h3 className="text-lg font-semibold">{session.title}</h3>
@@ -144,7 +130,6 @@ const AdminPortal = () => {
                   </div>
                 </div>
 
-                {/* Session code & date */}
                 <div className="mb-4 flex flex-wrap gap-4 text-sm text-muted-foreground">
                   <span>
                     Code:{" "}
@@ -157,34 +142,24 @@ const AdminPortal = () => {
                   </span>
                 </div>
 
-                {/* Per-session stats grid */}
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                {/* Quick stats */}
+                <div className="grid grid-cols-3 gap-3">
                   <div className="rounded-lg bg-primary/5 p-3 text-center">
-                    <MessageSquare className="mx-auto mb-1 h-4 w-4 text-primary" />
-                    <p className="text-lg font-bold">{totalPolls}</p>
-                    <p className="text-xs text-muted-foreground">Total Polls</p>
-                  </div>
-                  <div className="rounded-lg bg-success/5 p-3 text-center">
-                    <Activity className="mx-auto mb-1 h-4 w-4 text-success" />
-                    <p className="text-lg font-bold">{activePolls}</p>
-                    <p className="text-xs text-muted-foreground">Active</p>
-                  </div>
-                  <div className="rounded-lg bg-accent/10 p-3 text-center">
-                    <CheckCircle2 className="mx-auto mb-1 h-4 w-4 text-accent" />
-                    <p className="text-lg font-bold">{closedPolls}</p>
-                    <p className="text-xs text-muted-foreground">Completed</p>
-                  </div>
-                  <div className="rounded-lg bg-primary/5 p-3 text-center">
-                    <Users className="mx-auto mb-1 h-4 w-4 text-primary" />
                     <p className="text-lg font-bold">{totalResponses}</p>
-                    <p className="text-xs text-muted-foreground">Responses</p>
+                    <p className="text-xs text-muted-foreground">Total Votes</p>
+                  </div>
+                  <div className="rounded-lg bg-success/10 p-3 text-center">
+                    <p className="text-lg font-bold text-success">{yesCount}</p>
+                    <p className="text-xs text-muted-foreground">Yes</p>
+                  </div>
+                  <div className="rounded-lg bg-destructive/10 p-3 text-center">
+                    <p className="text-lg font-bold text-destructive">{noCount}</p>
+                    <p className="text-xs text-muted-foreground">No</p>
                   </div>
                 </div>
 
-                {/* Extra stats row */}
-                <div className="mt-3 flex flex-wrap gap-4 text-xs text-muted-foreground">
-                  <span>{session.participantCount} participants</span>
-                  <span>Avg {avgResponses} responses/poll</span>
+                <div className="mt-3 text-xs text-muted-foreground">
+                  {session.participantCount} participants joined
                 </div>
               </div>
             );

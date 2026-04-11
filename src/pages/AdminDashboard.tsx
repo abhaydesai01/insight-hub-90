@@ -21,12 +21,14 @@ import {
   Users,
   X,
   Download,
+  RotateCcw,
+  RefreshCw,
 } from "lucide-react";
 
 const AdminDashboard = () => {
   const { code } = useParams<{ code: string }>();
   const navigate = useNavigate();
-  const { sessions, addPoll, launchPoll, closePoll, endSession } =
+  const { sessions, addPoll, launchPoll, closePoll, endSession, resetPoll, resetAllPolls, restartSession, adminLoggedIn } =
     usePollingStore();
 
   const session = code ? sessions[code] : null;
@@ -144,6 +146,30 @@ const AdminDashboard = () => {
           <Button variant="outline" size="sm" onClick={copyCode}>
             <Copy className="h-4 w-4" /> Copy
           </Button>
+          {!session.isActive && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                restartSession(code);
+                toast.success("Session restarted");
+              }}
+            >
+              <RefreshCw className="h-4 w-4" /> Restart
+            </Button>
+          )}
+          {session.isActive && session.polls.length > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                resetAllPolls(code);
+                toast.success("All polls reset");
+              }}
+            >
+              <RotateCcw className="h-4 w-4" /> Reset All
+            </Button>
+          )}
           <Button
             variant="destructive"
             size="sm"
@@ -289,6 +315,18 @@ const AdminDashboard = () => {
                       onClick={() => closePoll(code, poll.id)}
                     >
                       <Square className="h-3.5 w-3.5" /> Close
+                    </Button>
+                  )}
+                  {!poll.isActive && Object.keys(poll.responses).length > 0 && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        resetPoll(code, poll.id);
+                        toast.success("Poll responses reset");
+                      }}
+                    >
+                      <RotateCcw className="h-3.5 w-3.5" /> Reset
                     </Button>
                   )}
                 </div>

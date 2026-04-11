@@ -10,7 +10,7 @@ import Header from "@/components/Header";
 const Index = () => {
   const [joinCode, setJoinCode] = useState("");
   const navigate = useNavigate();
-  const { joinSession, setIsAdmin } = usePollingStore();
+  const { joinSession, setIsAdmin, adminLoggedIn } = usePollingStore();
 
   const handleJoin = () => {
     if (!joinCode.trim()) {
@@ -83,18 +83,22 @@ const Index = () => {
                 Join <ArrowRight className="h-4 w-4" />
               </Button>
             </div>
-            <div className="mt-4 flex items-center gap-3">
-              <div className="h-px flex-1 bg-border" />
-              <span className="text-xs text-muted-foreground">or</span>
-              <div className="h-px flex-1 bg-border" />
-            </div>
-            <Button
-              variant="outline"
-              className="mt-4 w-full"
-              onClick={handleCreateSession}
-            >
-              Create a New Session
-            </Button>
+            {adminLoggedIn && (
+              <>
+                <div className="mt-4 flex items-center gap-3">
+                  <div className="h-px flex-1 bg-border" />
+                  <span className="text-xs text-muted-foreground">or</span>
+                  <div className="h-px flex-1 bg-border" />
+                </div>
+                <Button
+                  variant="outline"
+                  className="mt-4 w-full"
+                  onClick={handleCreateSession}
+                >
+                  Create a New Session
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </section>

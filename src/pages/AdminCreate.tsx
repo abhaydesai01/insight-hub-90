@@ -1,29 +1,49 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { usePollingStore } from "@/lib/polling-store";
+import { useAdminAuth } from "@/context/AdminAuthContext.tsx";
 import Header from "@/components/Header";
 import { toast } from "sonner";
+import { api } from "@/lib/api";
 
 const AdminCreate = () => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const navigate = useNavigate();
-  const { createSession, setCurrentSession, setIsAdmin } = usePollingStore();
+  const queryClient = useQueryClient();
+  const { ready, token } = useAdminAuth();
+
+  useEffect(() => {
+    if (ready && !token) {
+      navigate("/admin/login");
+    }
+  }, [ready, token, navigate]);
+
+  const createMutation = useMutation({
+    mutationFn: () => api.createSession(token!, title.trim(), description.trim()),
+    onSuccess: (res) => {
+      void queryClient.invalidateQueries({ queryKey: ["sessions", "list"] });
+      toast.success(`Session created! Code: ${res.session.code}`);
+      navigate(`/admin/${res.session.code}`);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   const handleCreate = () => {
+    if (!token) return;
     if (!title.trim()) {
       toast.error("Please enter a session title");
       return;
     }
-    const code = createSession(title.trim(), description.trim());
-    setCurrentSession(code);
-    setIsAdmin(true);
-    toast.success(`Session created! Code: ${code}`);
-    navigate(`/admin/${code}`);
+    createMutation.mutate();
   };
+
+  if (!ready || !token) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -54,7 +74,13 @@ const AdminCreate = () => {
               rows={3}
             />
           </div>
-          <Button onClick={handleCreate} variant="hero" className="w-full" size="lg">
+          <Button
+            onClick={handleCreate}
+            variant="hero"
+            className="w-full"
+            size="lg"
+            disabled={createMutation.isPending}
+          >
             Create Session
           </Button>
         </div>

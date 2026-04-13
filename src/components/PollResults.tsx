@@ -1,4 +1,4 @@
-import { Poll } from "@/lib/polling-store";
+import type { Poll } from "@/types/polling";
 
 interface PollResultsProps {
   poll: Poll;

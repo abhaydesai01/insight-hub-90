@@ -1,8 +1,10 @@
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { usePollingStore } from "@/lib/polling-store";
+import { useAdminAuth } from "@/context/AdminAuthContext.tsx";
 import Header from "@/components/Header";
-import PollResults from "@/components/PollResults";
+import { api } from "@/lib/api";
 import {
   Plus,
   BarChart3,
@@ -15,30 +17,27 @@ import {
 
 const AdminPortal = () => {
   const navigate = useNavigate();
-  const {
-    sessions,
-    adminLoggedIn,
-    adminProfile,
-    getTotalSessions,
-    getTotalResponses,
-    getActiveSessions,
-    restartSession,
-  } = usePollingStore();
+  const queryClient = useQueryClient();
+  const { ready, token, profile } = useAdminAuth();
 
-  if (!adminLoggedIn) {
-    navigate("/admin/login");
+  useEffect(() => {
+    if (ready && !token) {
+      navigate("/admin/login");
+    }
+  }, [ready, token, navigate]);
+
+  const { data, isLoading } = useQuery({
+    queryKey: ["sessions", "list", token],
+    queryFn: () => api.listSessions(token!),
+    enabled: !!token && ready,
+  });
+
+  if (!ready || !token) {
     return null;
   }
 
-  const sessionList = Object.values(sessions).sort(
-    (a, b) => b.createdAt - a.createdAt
-  );
-
-  const stats = [
-    { label: "Total Sessions", value: getTotalSessions(), icon: BarChart3 },
-    { label: "Active Sessions", value: getActiveSessions(), icon: Activity },
-    { label: "Total Responses", value: getTotalResponses(), icon: Users },
-  ];
+  const sessionList = data?.sessions ?? [];
+  const stats = data?.stats;
 
   return (
     <div className="min-h-screen bg-background">
@@ -48,7 +47,7 @@ const AdminPortal = () => {
           <div>
             <h1 className="text-2xl font-bold">Admin Portal</h1>
             <p className="text-muted-foreground">
-              Welcome, {adminProfile?.name} — {adminProfile?.department}
+              Welcome, {profile?.name} — {profile?.department}
             </p>
           </div>
           <Button variant="hero" onClick={() => navigate("/admin/create")}>
@@ -58,26 +57,46 @@ const AdminPortal = () => {
 
         {/* Overall Stats */}
         <div className="mb-8 grid gap-4 sm:grid-cols-3">
-          {stats.map((s) => (
-            <div key={s.label} className="rounded-xl border bg-card p-5 card-shadow">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                  <s.icon className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">{s.value}</p>
-                  <p className="text-xs text-muted-foreground">{s.label}</p>
-                </div>
+          <div className="rounded-xl border bg-card p-5 card-shadow">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                <BarChart3 className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">{isLoading ? "—" : stats?.totalSessions ?? 0}</p>
+                <p className="text-xs text-muted-foreground">Total Sessions</p>
               </div>
             </div>
-          ))}
+          </div>
+          <div className="rounded-xl border bg-card p-5 card-shadow">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                <Activity className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">{isLoading ? "—" : stats?.activeSessions ?? 0}</p>
+                <p className="text-xs text-muted-foreground">Active Sessions</p>
+              </div>
+            </div>
+          </div>
+          <div className="rounded-xl border bg-card p-5 card-shadow">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                <Users className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">{isLoading ? "—" : stats?.totalResponses ?? 0}</p>
+                <p className="text-xs text-muted-foreground">Total Responses</p>
+              </div>
+            </div>
+          </div>
         </div>
 
         <h2 className="mb-4 text-lg font-semibold">All Sessions</h2>
 
-        {sessionList.length === 0 && (
+        {sessionList.length === 0 && !isLoading && (
           <div className="rounded-xl border-2 border-dashed p-12 text-center text-muted-foreground">
-            No sessions created yet. Click "New Session" to start.
+            No sessions created yet. Click &quot;New Session&quot; to start.
           </div>
         )}
 
@@ -115,7 +134,10 @@ const AdminPortal = () => {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => restartSession(session.code)}
+                        onClick={async () => {
+                          await api.restartSession(token, session.code);
+                          await queryClient.invalidateQueries({ queryKey: ["sessions", "list"] });
+                        }}
                       >
                         <RotateCcw className="h-3.5 w-3.5" /> Restart
                       </Button>
@@ -142,7 +164,6 @@ const AdminPortal = () => {
                   </span>
                 </div>
 
-                {/* Quick stats */}
                 <div className="grid grid-cols-3 gap-3">
                   <div className="rounded-lg bg-primary/5 p-3 text-center">
                     <p className="text-lg font-bold">{totalResponses}</p>

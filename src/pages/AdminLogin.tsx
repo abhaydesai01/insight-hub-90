@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { usePollingStore } from "@/lib/polling-store";
+import { useAdminAuth } from "@/context/AdminAuthContext.tsx";
 import Header from "@/components/Header";
 import { toast } from "sonner";
 import { Shield } from "lucide-react";
@@ -10,21 +10,25 @@ import { Shield } from "lucide-react";
 const AdminLogin = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
-  const { adminLogin } = usePollingStore();
+  const { login } = useAdminAuth();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim() || !password.trim()) {
       toast.error("Please enter email and password");
       return;
     }
-    const success = adminLogin(email.trim(), password.trim());
-    if (success) {
+    setSubmitting(true);
+    try {
+      await login(email.trim(), password.trim());
       toast.success("Login successful");
       navigate("/admin/portal");
-    } else {
+    } catch {
       toast.error("Invalid credentials");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -61,11 +65,11 @@ const AdminLogin = () => {
               onChange={(e) => setPassword(e.target.value)}
             />
           </div>
-          <Button type="submit" variant="hero" className="w-full" size="lg">
+          <Button type="submit" variant="hero" className="w-full" size="lg" disabled={submitting}>
             Sign In
           </Button>
           <p className="text-center text-xs text-muted-foreground">
-            Demo: admin@karnataka.gov.in / admin123
+            Use the admin account configured on the server (see server/.env.example).
           </p>
         </form>
       </div>

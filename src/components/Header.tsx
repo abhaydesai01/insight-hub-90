@@ -1,15 +1,15 @@
 import { Vote, LogIn, LogOut, LayoutDashboard } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { usePollingStore } from "@/lib/polling-store";
+import { useAdminAuth } from "@/context/AdminAuthContext.tsx";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 const Header = () => {
   const navigate = useNavigate();
-  const { adminLoggedIn, adminLogout, adminProfile } = usePollingStore();
+  const { token, profile, logout } = useAdminAuth();
 
   const handleLogout = () => {
-    adminLogout();
+    logout();
     navigate("/");
   };
 
@@ -28,10 +28,10 @@ const Header = () => {
 
         <div className="flex items-center gap-2">
           <LanguageSwitcher />
-          {adminLoggedIn ? (
+          {token ? (
             <>
               <span className="hidden text-sm text-muted-foreground sm:inline">
-                {adminProfile?.name}
+                {profile?.name}
               </span>
               <Button
                 variant="ghost"
